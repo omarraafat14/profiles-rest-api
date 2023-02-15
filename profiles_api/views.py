@@ -1,8 +1,10 @@
 from django.shortcuts import render
-from rest_framework.views import APIView
+
 from rest_framework  import viewsets
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import filters
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 
 from .serializers import HelloSerializer, UserProfileSerializer
@@ -115,6 +117,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     permission_classes = [UpdateOwnProfile]
     authentication_classes = [TokenAuthentication]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'email']
 
     def create(self,request):
         """Create and return a new user"""
