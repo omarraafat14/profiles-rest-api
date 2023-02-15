@@ -3,8 +3,11 @@ from rest_framework.views import APIView
 from rest_framework  import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 
-from .serializers import HelloSerializer
+from .serializers import HelloSerializer, UserProfileSerializer
+from .models import UserProfile
+from .permissions import UpdateOwnProfile
 
 # Create your views here.
 class HelloAPIView(APIView):
@@ -103,3 +106,27 @@ class HelloViewSet(viewsets.ViewSet):
                 "message": 'DELETE'
             }
         )
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """Handle creating and updating profiles"""
+
+    serializer_class = UserProfileSerializer
+    queryset = UserProfile.objects.all()
+    permission_classes = [UpdateOwnProfile]
+    authentication_classes = [TokenAuthentication]
+
+    def create(self,request):
+        """Create and return a new user"""
+        serializer = self.serializer_class(data = request.data)
+        if serializer.is_valid():
+            user = UserProfile.objects.create_user(
+                email = serializer.validated_data['email'],
+                name = serializer.validated_data['name'],
+                password = serializer.validated_data['password']
+            )
+            return Response(
+                data = serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+
